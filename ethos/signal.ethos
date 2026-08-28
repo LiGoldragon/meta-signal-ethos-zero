@@ -1,0 +1,23 @@
+Interface.{0 1 0}
+Channel.{MetaEthosZero 2 1}
+[]
+{
+  [Configure.Configuration Observe.MetaObservationSelection]
+  [Configured.Configuration Observed.MetaObservation ConfigurationRejected.ConfigurationRefusal]
+  []
+  []
+  [
+    OrdinarySocketPath.String
+    MetaSocketPath.String
+    SourceManifestPath.String
+    Configuration.{OrdinarySocketPath MetaSocketPath SourceManifestPath}
+    MetaObservationSelection.[Configuration Sources]
+    SourceName.String
+    RelativePath.String
+    Source.{SourceName RelativePath}
+    Sources.Vector<Source>
+    SourceIndex.{Sources}
+    MetaObservation.[Configuration.Configuration Sources.SourceIndex]
+    ConfigurationRefusal.[InvalidOrdinarySocketPath InvalidMetaSocketPath InvalidSourceManifestPath UnreadableSourceManifest]
+  ]
+}
