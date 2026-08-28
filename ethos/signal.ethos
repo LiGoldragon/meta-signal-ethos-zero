@@ -1,5 +1,5 @@
-Interface.{0 1 0}
-Channel.{MetaEthosZero 2 1}
+Interface.{0 2 0}
+Channel.{MetaEthosZero 2 2}
 []
 {
   [Configure.Configuration Observe.MetaObservationSelection]

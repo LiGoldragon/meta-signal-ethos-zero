@@ -2,9 +2,9 @@
 
 use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
 
-pub const INTERFACE_VERSION: ProtocolVersion = ProtocolVersion::new(0, 1, 0);
-pub const CHANNEL_CONTRACT_ID: u32 = 2;
-pub const CHANNEL_WIRE_REVISION: u16 = 1;
+pub const INTERFACE_VERSION: ProtocolVersion = ProtocolVersion::new(0, 2, 0);
+pub const CHANNEL_CONTRACT_ID: ChannelContractId = ChannelContractId(2);
+pub const CHANNEL_WIRE_REVISION: ChannelWireRevision = ChannelWireRevision(2);
 pub const PROTOCOL_VERSION: ProtocolVersion = INTERFACE_VERSION;
 
 /// The only binary boundary for this contract.
@@ -28,6 +28,10 @@ impl ProtocolVersion {
         }
     }
 }
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ChannelContractId(pub u32);
+#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
+pub struct ChannelWireRevision(pub u16);
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
 pub struct OrdinarySocketPath(pub String);
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
@@ -90,6 +94,8 @@ pub enum FrameBody {
 }
 #[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
 pub struct Frame {
+    pub channel_contract_id: ChannelContractId,
+    pub channel_wire_revision: ChannelWireRevision,
     pub protocol_version: ProtocolVersion,
     pub body: FrameBody,
 }
@@ -103,6 +109,14 @@ pub enum FrameCodecError {
     LengthTooLarge,
     ArchiveEncode,
     ArchiveDecode,
+    WrongChannelContract {
+        expected: ChannelContractId,
+        found: ChannelContractId,
+    },
+    WrongChannelWireRevision {
+        expected: ChannelWireRevision,
+        found: ChannelWireRevision,
+    },
     UnsupportedProtocol {
         expected: ProtocolVersion,
         found: ProtocolVersion,
@@ -111,6 +125,18 @@ pub enum FrameCodecError {
 
 impl SignalFrameCodec for Frame {
     fn encode_length_prefixed(&self) -> Result<Vec<u8>, FrameCodecError> {
+        if self.channel_contract_id != CHANNEL_CONTRACT_ID {
+            return Err(FrameCodecError::WrongChannelContract {
+                expected: CHANNEL_CONTRACT_ID,
+                found: self.channel_contract_id,
+            });
+        }
+        if self.channel_wire_revision != CHANNEL_WIRE_REVISION {
+            return Err(FrameCodecError::WrongChannelWireRevision {
+                expected: CHANNEL_WIRE_REVISION,
+                found: self.channel_wire_revision,
+            });
+        }
         if self.protocol_version != PROTOCOL_VERSION {
             return Err(FrameCodecError::UnsupportedProtocol {
                 expected: PROTOCOL_VERSION,
@@ -140,6 +166,18 @@ impl SignalFrameCodec for Frame {
         }
         let frame = rkyv::from_bytes::<Self, rkyv::rancor::Error>(payload)
             .map_err(|_| FrameCodecError::ArchiveDecode)?;
+        if frame.channel_contract_id != CHANNEL_CONTRACT_ID {
+            return Err(FrameCodecError::WrongChannelContract {
+                expected: CHANNEL_CONTRACT_ID,
+                found: frame.channel_contract_id,
+            });
+        }
+        if frame.channel_wire_revision != CHANNEL_WIRE_REVISION {
+            return Err(FrameCodecError::WrongChannelWireRevision {
+                expected: CHANNEL_WIRE_REVISION,
+                found: frame.channel_wire_revision,
+            });
+        }
         if frame.protocol_version != PROTOCOL_VERSION {
             return Err(FrameCodecError::UnsupportedProtocol {
                 expected: PROTOCOL_VERSION,
