@@ -1,3 +1,3 @@
 Configure.{/run/ethos-zero.sock /run/ethos-zero-meta.sock /etc/ethos-zero/sources.datom}
-Observed.Sources.{{workspace ethos/signal.ethos}}
+Observed.Sources.[{workspace ethos/signal.ethos}]
 ConfigurationRejected.InvalidSourceManifestPath

@@ -15,6 +15,14 @@ fn frame(body: FrameBody) -> Frame {
     }
 }
 
+fn raw_length_prefixed(value: &Frame) -> Vec<u8> {
+    let archive = rkyv::to_bytes::<rkyv::rancor::Error>(value).expect("archive frame");
+    let length = u32::try_from(archive.len()).expect("frame length fits prefix");
+    let mut bytes = length.to_le_bytes().to_vec();
+    bytes.extend_from_slice(&archive);
+    bytes
+}
+
 #[test]
 fn concrete_configuration_round_trips_through_the_framed_signal() {
     let value = frame(FrameBody::Request(Request::Configure(configuration())));
@@ -91,6 +99,13 @@ fn protocol_versions_are_validated() {
     };
     assert_eq!(
         value.encode_length_prefixed(),
+        Err(FrameCodecError::UnsupportedProtocol {
+            expected: PROTOCOL_VERSION,
+            found: ProtocolVersion::new(0, 1, 1)
+        })
+    );
+    assert_eq!(
+        Frame::decode_length_prefixed(&raw_length_prefixed(&value)),
         Err(FrameCodecError::UnsupportedProtocol {
             expected: PROTOCOL_VERSION,
             found: ProtocolVersion::new(0, 1, 1)
