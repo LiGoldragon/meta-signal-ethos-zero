@@ -1,5 +1,16 @@
 # Upgrades
 
+## 0.3.0 — generated lifecycle contract
+
+This is a breaking wire change. Deploy every MetaEthosZero peer with
+`meta-signal-ethos-zero` 0.3.0 in one coordinated rollout. The contract is now
+generated from `ethos/signal.ethos`, carries interface 0.3.0 and wire revision
+3, and adds Subscribe/Unsubscribe lifecycle requests, typed
+`InvalidRelativePath` refusals, and configuration/source stream events.
+
+Do not mix 0.2.0 and 0.3.0 peers on one socket. Drain or stop the old peer,
+deploy the new peer and its generated contract revision, then reopen the socket.
+
 ## 0.2.0 — framed contract identity
 
 This is a breaking wire change. Deploy every MetaEthosZero peer with

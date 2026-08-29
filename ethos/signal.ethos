@@ -1,16 +1,17 @@
-Interface.{0 2 0}
-Channel.{MetaEthosZero 2 2}
+Interface.{0 3 0}
+Channel.{MetaEthosZero 2 3}
 []
 {
-  [Configure.Configuration Observe.MetaObservationSelection]
+  [Configure.Configuration Observe.MetaObservationSelection Subscribe.MetaSubscriptionRequest Unsubscribe.MetaSubscriptionRequest]
   [Configured.Configuration Observed.MetaObservation ConfigurationRejected.ConfigurationRefusal]
-  []
-  []
+  [InvalidRelativePath.RelativePath]
+  [ConfigurationChanged.Configuration SourcesChanged.SourceIndex]
   [
     OrdinarySocketPath.String
     MetaSocketPath.String
     SourceManifestPath.String
     Configuration.{OrdinarySocketPath MetaSocketPath SourceManifestPath}
+    MetaSubscriptionRequest.{Selection.MetaObservationSelection}
     MetaObservationSelection.[Configuration Sources]
     SourceName.String
     RelativePath.String
@@ -18,6 +19,6 @@ Channel.{MetaEthosZero 2 2}
     Sources.Vector<Source>
     SourceIndex.{Sources}
     MetaObservation.[Configuration.Configuration Sources.SourceIndex]
-    ConfigurationRefusal.[InvalidOrdinarySocketPath InvalidMetaSocketPath InvalidSourceManifestPath UnreadableSourceManifest]
+    ConfigurationRefusal.[InvalidOrdinarySocketPath InvalidMetaSocketPath InvalidSourceManifestPath InvalidRelativePath.RelativePath UnreadableSourceManifest]
   ]
 }

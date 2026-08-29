@@ -12,8 +12,14 @@
       let
         pkgs = import nixpkgs { inherit system; };
         craneLib = crane.mkLib pkgs;
-        src = craneLib.cleanCargoSource ./.;
-        commonArgs = { inherit src; strictDeps = true; };
+        src = pkgs.lib.cleanSourceWith {
+          src = ./.;
+          filter = path: type:
+            craneLib.filterCargoSources path type
+            || (type == "regular" && pkgs.lib.hasSuffix ".ethos" path);
+          name = "source";
+        };
+        commonArgs = { inherit src; strictDeps = true; nativeBuildInputs = [ pkgs.rustfmt ]; };
         cargoArtifacts = craneLib.buildDepsOnly commonArgs;
       in {
         packages.default = craneLib.buildPackage (commonArgs // { inherit cargoArtifacts; });
