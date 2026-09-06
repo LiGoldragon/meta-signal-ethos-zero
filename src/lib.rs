@@ -1,7 +1,7 @@
 //! Privileged Ethos-zero Signal generated from current Ethos.
 //!
 //! The public roots are typed Datom; socket bytes are structural rkyv values
-//! bound to contract seat 2, revision 4.
+//! bound to contract seat 8, revision 4.
 
 #[rustfmt::skip]
 #[path = "generated/signal.rs"]
@@ -19,12 +19,12 @@ impl WireConversion for protos::Text {
     }
 }
 
-/// The allocated privileged Ethos-zero wire contract: stable seat 2, structural revision 4.
+/// The allocated privileged Ethos-zero wire contract: stable seat 8, structural revision 4.
 pub enum MetaEthosZeroWire {}
 impl signal_frame::WireContract for MetaEthosZeroWire {
     const BINDING: signal_frame::ContractBinding = signal_frame::ContractBinding::new(
         signal_frame::ContractId::new(
-            core::num::NonZeroU32::new(2).expect("meta Ethos-zero wire seat is nonzero"),
+            core::num::NonZeroU32::new(8).expect("meta Ethos-zero wire seat is nonzero"),
         ),
         signal_frame::WireRevision::new(
             core::num::NonZeroU16::new(4).expect("structural wire revision is nonzero"),

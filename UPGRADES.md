@@ -1,5 +1,14 @@
 # Upgrades
 
+## 0.5.0 — distinct global structural binding
+
+This breaking wire change moves the privileged Ethos-zero contract from the
+colliding historical Orchestrate identity to ContractId 8 while retaining its
+structural wire revision 4. Contract IDs are global identities in the shared
+signal-frame header; a revision is contract-local and cannot distinguish a
+different component. Upgrade every Ethos-zero privileged peer together. Frames
+carrying Orchestrate's 2/3 binding are rejected as foreign before archive decoding.
+
 ## 0.3.0 — generated lifecycle contract
 
 This is a breaking wire change. Deploy every MetaEthosZero peer with

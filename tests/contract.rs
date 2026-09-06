@@ -40,17 +40,17 @@ fn bound_structural_request_round_trips() {
     assert_eq!(found_exchange, exchange());
     assert_eq!(found, expected);
 }
-struct WrongContract;
-impl WireContract for WrongContract {
+struct OrchestrateMetaContract;
+impl WireContract for OrchestrateMetaContract {
     const BINDING: ContractBinding = ContractBinding::new(
-        ContractId::new(NonZeroU32::new(1).unwrap()),
-        WireRevision::new(NonZeroU16::new(4).unwrap()),
+        ContractId::new(NonZeroU32::new(2).unwrap()),
+        WireRevision::new(NonZeroU16::new(3).unwrap()),
     );
 }
 struct WrongRevision;
 impl WireContract for WrongRevision {
     const BINDING: ContractBinding = ContractBinding::new(
-        ContractId::new(NonZeroU32::new(2).unwrap()),
+        ContractId::new(NonZeroU32::new(8).unwrap()),
         WireRevision::new(NonZeroU16::new(3).unwrap()),
     );
 }
@@ -66,14 +66,21 @@ fn forged<Contract: WireContract>(route: WireRoute) -> Vec<u8> {
     .unwrap()
 }
 #[test]
-fn wrong_component_revision_route_and_archive_fail_closed() {
+fn orchestrate_meta_contract_is_rejected_before_archive_decode() {
     let correct = WireRoute::new(RootCode::new(0), VariantCode::new(0));
+    let mut bytes = forged::<OrchestrateMetaContract>(correct);
+    bytes[..4].copy_from_slice(&(8_u32).to_be_bytes());
+    bytes.truncate(12);
     assert!(matches!(
-        decode_request(&forged::<WrongContract>(correct)),
+        decode_request(&bytes),
         Err(ExchangeDecodeFault::Frame(
             signal_frame::FrameError::ContractMismatch { .. }
         ))
     ));
+}
+#[test]
+fn wrong_revision_route_and_archive_fail_closed() {
+    let correct = WireRoute::new(RootCode::new(0), VariantCode::new(0));
     assert!(matches!(
         decode_request(&forged::<WrongRevision>(correct)),
         Err(ExchangeDecodeFault::Frame(
