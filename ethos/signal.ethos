@@ -1,24 +1,5 @@
-Interface.{0 3 0}
-Channel.{MetaEthosZero 2 3}
+Signal
 []
-{
-  [Configure.Configuration Observe.MetaObservationSelection Subscribe.MetaSubscriptionRequest Unsubscribe.MetaSubscriptionRequest]
-  [Configured.Configuration Observed.MetaObservation ConfigurationRejected.ConfigurationRefusal]
-  [InvalidRelativePath.RelativePath]
-  [ConfigurationChanged.Configuration SourcesChanged.SourceIndex]
-  [
-    OrdinarySocketPath.String
-    MetaSocketPath.String
-    SourceManifestPath.String
-    Configuration.{OrdinarySocketPath MetaSocketPath SourceManifestPath}
-    MetaSubscriptionRequest.{Selection.MetaObservationSelection}
-    MetaObservationSelection.[Configuration Sources]
-    SourceName.String
-    RelativePath.String
-    Source.{SourceName RelativePath}
-    Sources.Vector<Source>
-    SourceIndex.{Sources}
-    MetaObservation.[Configuration.Configuration Sources.SourceIndex]
-    ConfigurationRefusal.[InvalidOrdinarySocketPath InvalidMetaSocketPath InvalidSourceManifestPath InvalidRelativePath.RelativePath UnreadableSourceManifest]
-  ]
-}
+[ Configure.Configuration Observe.MetaObservationSelection Subscribe.MetaSubscriptionRequest Unsubscribe.MetaSubscriptionRequest ]
+[ Configured.Configuration Observed.MetaObservation ConfigurationRejected.ConfigurationRefusal ConfigurationChanged.Configuration SourcesChanged.SourceIndex ]
+[ OrdinarySocketPath.Text MetaSocketPath.Text SourceManifestPath.Text Configuration.{ OrdinarySocketPath MetaSocketPath SourceManifestPath } MetaSubscriptionRequest.{ MetaObservationSelection } MetaObservationSelection.[ Configuration Sources ] SourceName.Text RelativePath.Text Source.{ SourceName RelativePath } Sources.Vector<Source> SourceIndex.{ Sources } MetaObservation.[ Configuration.Configuration Sources.SourceIndex ] ConfigurationRefusal.[ InvalidOrdinarySocketPath InvalidMetaSocketPath InvalidSourceManifestPath InvalidRelativePath.RelativePath UnreadableSourceManifest ] ]

@@ -1,175 +1,94 @@
-use datomic::{Datomic, TextEdge};
-use meta_signal_ethos_zero::*;
-use protos::{PortionText, Text};
-
-fn string<T: TryFrom<String>>(value: &str) -> T
-where
-    T::Error: std::fmt::Debug,
-{
-    value.to_owned().try_into().expect("representable string")
+use core::num::{NonZeroU16, NonZeroU32};
+use datom_codec::{Actualizable, IncorporationBudget, Potential, Textualizable};
+use meta_signal_ethos_zero::{
+    Configuration, ExchangeDecodeFault, MetaEthosZeroWire, Request, RequestWire, ResponseWire,
+    WireConversion, decode_request, encode_request,
+};
+use signal_frame::{
+    BoundExchangeFrame, ContractBinding, ContractId, ExchangeFrameBody, ExchangeIdentifier,
+    ExchangeLane, LaneSequence, RootCode, SessionEpoch, VariantCode, WireContract, WireRevision,
+    WireRoute,
+};
+fn exchange() -> ExchangeIdentifier {
+    ExchangeIdentifier::new(
+        SessionEpoch::new(1),
+        ExchangeLane::Connector,
+        LaneSequence::new(1),
+    )
 }
-
-fn configuration() -> Configuration {
-    Configuration {
-        ordinary_socket_path: string("/run/ethos-zero.sock"),
-        meta_socket_path: string("/run/ethos-zero-meta.sock"),
-        source_manifest_path: string("/etc/ethos-zero/sources.datom"),
-    }
+fn request() -> Request {
+    Request::Configure(Configuration(
+        protos::Text::try_from("/run/ordinary.sock").unwrap(),
+        protos::Text::try_from("/run/meta.sock").unwrap(),
+        protos::Text::try_from("/etc/ethos/sources.datom").unwrap(),
+    ))
 }
-
-fn source_index() -> SourceIndex {
-    SourceIndex {
-        sources: Sources(vec![Source {
-            source_name: string("workspace"),
-            relative_path: string("ethos/signal.ethos"),
-        }]),
-    }
-}
-
-fn frame(body: FrameBody) -> Frame {
-    Frame {
-        channel_contract_id: CHANNEL_CONTRACT_ID,
-        channel_wire_revision: CHANNEL_WIRE_REVISION,
-        protocol_version: PROTOCOL_VERSION,
-        body,
-    }
-}
-
-fn raw_length_prefixed(value: &Frame) -> Vec<u8> {
-    let archive = rkyv::to_bytes::<rkyv::rancor::Error>(value).expect("archive frame");
-    let length = u32::try_from(archive.len()).expect("frame length fits prefix");
-    let mut bytes = length.to_le_bytes().to_vec();
-    bytes.extend_from_slice(&archive);
-    bytes
-}
-
-fn assert_frame_round_trip(value: Frame) {
-    let encoded = value.encode_length_prefixed().expect("encode signal");
-    assert_eq!(
-        Frame::decode_length_prefixed(&encoded).expect("decode signal"),
-        value
-    );
-}
-
-fn assert_text_round_trip<T>(value: T)
-where
-    T: Datomic + Clone + std::fmt::Debug + PartialEq,
-{
-    let text = Datomic::portion(&value).canonical_text();
-    assert_eq!(
-        Text::<T>::from(text.as_ref())
-            .embody()
-            .expect("Datomic text embodiment"),
-        value
-    );
-}
-
 #[test]
-fn every_root_executes_through_datomic_text_and_rkyv_frames() {
-    let requests = [
-        Request::Configure(configuration()),
-        Request::Observe(MetaObservationSelection::Configuration),
-        Request::Observe(MetaObservationSelection::Sources),
-        Request::Subscribe(MetaSubscriptionRequest {
-            selection: MetaObservationSelection::Sources,
-        }),
-        Request::Unsubscribe(MetaSubscriptionRequest {
-            selection: MetaObservationSelection::Configuration,
-        }),
-    ];
-    for request in requests {
-        assert_text_round_trip(request.clone());
-        assert_frame_round_trip(frame(FrameBody::Request(request)));
-    }
-
-    let replies = [
-        Reply::Configured(configuration()),
-        Reply::Observed(MetaObservation::Configuration(configuration())),
-        Reply::Observed(MetaObservation::Sources(source_index())),
-        Reply::ConfigurationRejected(ConfigurationRefusal::InvalidOrdinarySocketPath),
-        Reply::ConfigurationRejected(ConfigurationRefusal::InvalidMetaSocketPath),
-        Reply::ConfigurationRejected(ConfigurationRefusal::InvalidSourceManifestPath),
-        Reply::ConfigurationRejected(ConfigurationRefusal::InvalidRelativePath(string(
-            "../outside",
+fn typed_datom_request_round_trips() {
+    let expected = request();
+    let text = <Request as Textualizable<datom_codec::Datom>>::textualize(&expected);
+    let found = Potential::<Request>::from(text.as_str())
+        .actualize(IncorporationBudget::try_from(128).unwrap())
+        .unwrap();
+    assert_eq!(found, expected);
+}
+#[test]
+fn bound_structural_request_round_trips() {
+    let expected = request();
+    let (found_exchange, found) =
+        decode_request(&encode_request(exchange(), expected.clone()).unwrap()).unwrap();
+    assert_eq!(found_exchange, exchange());
+    assert_eq!(found, expected);
+}
+struct WrongContract;
+impl WireContract for WrongContract {
+    const BINDING: ContractBinding = ContractBinding::new(
+        ContractId::new(NonZeroU32::new(1).unwrap()),
+        WireRevision::new(NonZeroU16::new(4).unwrap()),
+    );
+}
+struct WrongRevision;
+impl WireContract for WrongRevision {
+    const BINDING: ContractBinding = ContractBinding::new(
+        ContractId::new(NonZeroU32::new(2).unwrap()),
+        WireRevision::new(NonZeroU16::new(3).unwrap()),
+    );
+}
+fn forged<Contract: WireContract>(route: WireRoute) -> Vec<u8> {
+    BoundExchangeFrame::<Contract, RequestWire, ResponseWire>::new(
+        route,
+        ExchangeFrameBody::Request {
+            exchange: exchange(),
+            request: signal_frame::Request::from_payload(request().into_wire()),
+        },
+    )
+    .encode_length_prefixed()
+    .unwrap()
+}
+#[test]
+fn wrong_component_revision_route_and_archive_fail_closed() {
+    let correct = WireRoute::new(RootCode::new(0), VariantCode::new(0));
+    assert!(matches!(
+        decode_request(&forged::<WrongContract>(correct)),
+        Err(ExchangeDecodeFault::Frame(
+            signal_frame::FrameError::ContractMismatch { .. }
+        ))
+    ));
+    assert!(matches!(
+        decode_request(&forged::<WrongRevision>(correct)),
+        Err(ExchangeDecodeFault::Frame(
+            signal_frame::FrameError::UnsupportedWireRevision { .. }
+        ))
+    ));
+    assert!(matches!(
+        decode_request(&forged::<MetaEthosZeroWire>(WireRoute::new(
+            RootCode::new(1),
+            VariantCode::new(0)
         ))),
-        Reply::ConfigurationRejected(ConfigurationRefusal::UnreadableSourceManifest),
-    ];
-    for reply in replies {
-        assert_text_round_trip(reply.clone());
-        assert_frame_round_trip(frame(FrameBody::Reply(reply)));
-    }
-
-    let refusal = Refusal::InvalidRelativePath(string("../outside"));
-    assert_text_round_trip(refusal.clone());
-    assert_frame_round_trip(frame(FrameBody::Refusal(refusal)));
-
-    let events = [
-        Stream::ConfigurationChanged(configuration()),
-        Stream::SourcesChanged(source_index()),
-    ];
-    for event in events {
-        assert_text_round_trip(event.clone());
-        assert_frame_round_trip(frame(FrameBody::Event(event)));
-    }
-}
-
-#[test]
-fn malformed_frames_and_wrong_metadata_are_rejected() {
-    assert_eq!(
-        Frame::decode_length_prefixed(&[]),
-        Err(FrameCodecError::LengthPrefixMissing)
-    );
-    assert!(matches!(
-        Frame::decode_length_prefixed(&[1, 0, 0, 0]),
-        Err(FrameCodecError::LengthMismatch { .. })
-    ));
-    assert_eq!(
-        Frame::decode_length_prefixed(&[1, 0, 0, 0, 0]),
-        Err(FrameCodecError::ArchiveDecode)
-    );
-
-    let wrong_protocol = Frame {
-        protocol_version: ProtocolVersion::new(0, 2, 0),
-        ..frame(FrameBody::Request(Request::Observe(
-            MetaObservationSelection::Sources,
-        )))
-    };
-    assert!(matches!(
-        wrong_protocol.encode_length_prefixed(),
-        Err(FrameCodecError::UnsupportedProtocol { .. })
+        Err(ExchangeDecodeFault::RouteMismatch { .. })
     ));
     assert!(matches!(
-        Frame::decode_length_prefixed(&raw_length_prefixed(&wrong_protocol)),
-        Err(FrameCodecError::UnsupportedProtocol { .. })
-    ));
-
-    let wrong_contract = Frame {
-        channel_contract_id: ChannelContractId(1),
-        ..frame(FrameBody::Request(Request::Observe(
-            MetaObservationSelection::Sources,
-        )))
-    };
-    assert!(matches!(
-        wrong_contract.encode_length_prefixed(),
-        Err(FrameCodecError::WrongChannelContract { .. })
-    ));
-    assert!(matches!(
-        Frame::decode_length_prefixed(&raw_length_prefixed(&wrong_contract)),
-        Err(FrameCodecError::WrongChannelContract { .. })
-    ));
-
-    let wrong_revision = Frame {
-        channel_wire_revision: ChannelWireRevision(2),
-        ..frame(FrameBody::Request(Request::Observe(
-            MetaObservationSelection::Sources,
-        )))
-    };
-    assert!(matches!(
-        wrong_revision.encode_length_prefixed(),
-        Err(FrameCodecError::WrongChannelWireRevision { .. })
-    ));
-    assert!(matches!(
-        Frame::decode_length_prefixed(&raw_length_prefixed(&wrong_revision)),
-        Err(FrameCodecError::WrongChannelWireRevision { .. })
+        decode_request(&[0, 0, 0, 1]),
+        Err(ExchangeDecodeFault::Frame(_))
     ));
 }

@@ -1,189 +1,289 @@
-use rkyv::{Archive, Deserialize as RkyvDeserialize, Serialize as RkyvSerialize};
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ProtocolVersion {
-    pub major: u16,
-    pub minor: u16,
-    pub patch: u16,
-}
-impl ProtocolVersion {
-    pub const fn new(major: u16, minor: u16, patch: u16) -> Self {
-        Self {
-            major,
-            minor,
-            patch,
-        }
+#![allow(dead_code)]
+#![allow(clippy::redundant_closure)]
+pub type OrdinarySocketPath = protos::Text;
+pub type MetaSocketPath = protos::Text;
+pub type SourceManifestPath = protos::Text;
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Configuration(
+    pub OrdinarySocketPath,
+    pub MetaSocketPath,
+    pub SourceManifestPath,
+);
+impl datom_codec::Datomic for Configuration {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let mut p = datom_codec::Sited::positions(site, 3)?;
+        let p0: OrdinarySocketPath = datom_codec::Positional::position(&mut p)?;
+        let p1: MetaSocketPath = datom_codec::Positional::position(&mut p)?;
+        let p2: SourceManifestPath = datom_codec::Positional::position(&mut p)?;
+        std::result::Result::Ok(Self(p0, p1, p2))
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ChannelContractId(pub u32);
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Copy, Debug, PartialEq, Eq)]
-pub struct ChannelWireRevision(pub u16);
-pub const INTERFACE_VERSION: ProtocolVersion = ProtocolVersion::new(0u16, 3u16, 0u16);
-pub const CHANNEL_CONTRACT_ID: ChannelContractId = ChannelContractId(2u32);
-pub const CHANNEL_WIRE_REVISION: ChannelWireRevision = ChannelWireRevision(3u16);
-pub const PROTOCOL_VERSION: ProtocolVersion = INTERFACE_VERSION;
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct OrdinarySocketPath(String);
-impl OrdinarySocketPath {
-    pub fn try_from_string(
-        value: String,
-    ) -> std::result::Result<Self, datomic::UnrepresentableString> {
-        datomic::DatomicString::try_from(value).map(|value| Self(value.as_ref().to_owned()))
+impl protos::Conceivable<datom_codec::Datom> for Configuration {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                datom_codec::Datom::Struct(
+                    vec![
+                        protos::Conceivable::conceive(& self.0)
+                        .expect("infallible datom ascent").1,
+                        protos::Conceivable::conceive(& self.1)
+                        .expect("infallible datom ascent").1,
+                        protos::Conceivable::conceive(& self.2)
+                        .expect("infallible datom ascent").1
+                    ],
+                ),
+            ),
+        )
     }
 }
-impl std::convert::TryFrom<String> for OrdinarySocketPath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value)
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct MetaSubscriptionRequest(pub MetaObservationSelection);
+impl datom_codec::Datomic for MetaSubscriptionRequest {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let mut p = datom_codec::Sited::positions(site, 1)?;
+        let p0: MetaObservationSelection = datom_codec::Positional::position(&mut p)?;
+        std::result::Result::Ok(Self(p0))
     }
 }
-impl<'a> std::convert::TryFrom<&'a str> for OrdinarySocketPath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value.to_owned())
+impl protos::Conceivable<datom_codec::Datom> for MetaSubscriptionRequest {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                datom_codec::Datom::Struct(
+                    vec![
+                        protos::Conceivable::conceive(& self.0)
+                        .expect("infallible datom ascent").1
+                    ],
+                ),
+            ),
+        )
     }
 }
-impl AsRef<str> for OrdinarySocketPath {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct MetaSocketPath(String);
-impl MetaSocketPath {
-    pub fn try_from_string(
-        value: String,
-    ) -> std::result::Result<Self, datomic::UnrepresentableString> {
-        datomic::DatomicString::try_from(value).map(|value| Self(value.as_ref().to_owned()))
-    }
-}
-impl std::convert::TryFrom<String> for MetaSocketPath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value)
-    }
-}
-impl<'a> std::convert::TryFrom<&'a str> for MetaSocketPath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value.to_owned())
-    }
-}
-impl AsRef<str> for MetaSocketPath {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct SourceManifestPath(String);
-impl SourceManifestPath {
-    pub fn try_from_string(
-        value: String,
-    ) -> std::result::Result<Self, datomic::UnrepresentableString> {
-        datomic::DatomicString::try_from(value).map(|value| Self(value.as_ref().to_owned()))
-    }
-}
-impl std::convert::TryFrom<String> for SourceManifestPath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value)
-    }
-}
-impl<'a> std::convert::TryFrom<&'a str> for SourceManifestPath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value.to_owned())
-    }
-}
-impl AsRef<str> for SourceManifestPath {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Configuration {
-    pub ordinary_socket_path: OrdinarySocketPath,
-    pub meta_socket_path: MetaSocketPath,
-    pub source_manifest_path: SourceManifestPath,
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct MetaSubscriptionRequest {
-    pub selection: MetaObservationSelection,
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum MetaObservationSelection {
     Configuration,
     Sources,
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct SourceName(String);
-impl SourceName {
-    pub fn try_from_string(
-        value: String,
-    ) -> std::result::Result<Self, datomic::UnrepresentableString> {
-        datomic::DatomicString::try_from(value).map(|value| Self(value.as_ref().to_owned()))
+impl datom_codec::Datomic for MetaObservationSelection {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "Configuration" => {
+                datom_codec::Headed::nothing(v)?;
+                std::result::Result::Ok(Self::Configuration)
+            }
+            "Sources" => {
+                datom_codec::Headed::nothing(v)?;
+                std::result::Result::Ok(Self::Sources)
+            }
+            _ => {
+                std::result::Result::Err(
+                    datom_codec::Headed::reject(
+                        &v,
+                        datom_codec::Problem::UnknownVariant(
+                            protos::Word::try_from(v.name).expect("variant name"),
+                        ),
+                    ),
+                )
+            }
+        }
     }
 }
-impl std::convert::TryFrom<String> for SourceName {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value)
+impl protos::Conceivable<datom_codec::Datom> for MetaObservationSelection {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                match self {
+                    Self::Configuration => {
+                        datom_codec::Datom::Word(
+                            datom_codec::DatomWord::try_from(
+                                    protos::Word::try_from("Configuration")
+                                        .expect("static variant"),
+                                )
+                                .expect("stable variant"),
+                        )
+                    }
+                    Self::Sources => {
+                        datom_codec::Datom::Word(
+                            datom_codec::DatomWord::try_from(
+                                    protos::Word::try_from("Sources").expect("static variant"),
+                                )
+                                .expect("stable variant"),
+                        )
+                    }
+                },
+            ),
+        )
     }
 }
-impl<'a> std::convert::TryFrom<&'a str> for SourceName {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value.to_owned())
+pub type SourceName = protos::Text;
+pub type RelativePath = protos::Text;
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct Source(pub SourceName, pub RelativePath);
+impl datom_codec::Datomic for Source {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let mut p = datom_codec::Sited::positions(site, 2)?;
+        let p0: SourceName = datom_codec::Positional::position(&mut p)?;
+        let p1: RelativePath = datom_codec::Positional::position(&mut p)?;
+        std::result::Result::Ok(Self(p0, p1))
     }
 }
-impl AsRef<str> for SourceName {
-    fn as_ref(&self) -> &str {
-        &self.0
+impl protos::Conceivable<datom_codec::Datom> for Source {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                datom_codec::Datom::Struct(
+                    vec![
+                        protos::Conceivable::conceive(& self.0)
+                        .expect("infallible datom ascent").1,
+                        protos::Conceivable::conceive(& self.1)
+                        .expect("infallible datom ascent").1
+                    ],
+                ),
+            ),
+        )
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct RelativePath(String);
-impl RelativePath {
-    pub fn try_from_string(
-        value: String,
-    ) -> std::result::Result<Self, datomic::UnrepresentableString> {
-        datomic::DatomicString::try_from(value).map(|value| Self(value.as_ref().to_owned()))
+pub type Sources = std::vec::Vec<Source>;
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct SourceIndex(pub Sources);
+impl datom_codec::Datomic for SourceIndex {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let mut p = datom_codec::Sited::positions(site, 1)?;
+        let p0: Sources = datom_codec::Positional::position(&mut p)?;
+        std::result::Result::Ok(Self(p0))
     }
 }
-impl std::convert::TryFrom<String> for RelativePath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: String) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value)
+impl protos::Conceivable<datom_codec::Datom> for SourceIndex {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                datom_codec::Datom::Struct(
+                    vec![
+                        protos::Conceivable::conceive(& self.0)
+                        .expect("infallible datom ascent").1
+                    ],
+                ),
+            ),
+        )
     }
 }
-impl<'a> std::convert::TryFrom<&'a str> for RelativePath {
-    type Error = datomic::UnrepresentableString;
-    fn try_from(value: &'a str) -> std::result::Result<Self, Self::Error> {
-        Self::try_from_string(value.to_owned())
-    }
-}
-impl AsRef<str> for RelativePath {
-    fn as_ref(&self) -> &str {
-        &self.0
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Source {
-    pub source_name: SourceName,
-    pub relative_path: RelativePath,
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Sources(pub Vec<Source>);
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct SourceIndex {
-    pub sources: Sources,
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MetaObservation {
     Configuration(Configuration),
     Sources(SourceIndex),
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+impl datom_codec::Datomic for MetaObservation {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "Configuration" => {
+                std::result::Result::Ok(
+                    Self::Configuration(datom_codec::Carrying::body(v)?),
+                )
+            }
+            "Sources" => {
+                std::result::Result::Ok(Self::Sources(datom_codec::Carrying::body(v)?))
+            }
+            _ => {
+                std::result::Result::Err(
+                    datom_codec::Headed::reject(
+                        &v,
+                        datom_codec::Problem::UnknownVariant(
+                            protos::Word::try_from(v.name).expect("variant name"),
+                        ),
+                    ),
+                )
+            }
+        }
+    }
+}
+impl protos::Conceivable<datom_codec::Datom> for MetaObservation {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                match self {
+                    Self::Configuration(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Configuration")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::Sources(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Sources").expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                },
+            ),
+        )
+    }
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ConfigurationRefusal {
     InvalidOrdinarySocketPath,
     InvalidMetaSocketPath,
@@ -191,536 +291,699 @@ pub enum ConfigurationRefusal {
     InvalidRelativePath(RelativePath),
     UnreadableSourceManifest,
 }
-impl datomic::Datomic for OrdinarySocketPath {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        Ok(Self(
-            <datomic::DatomicString as datomic::Datomic>::embody(portion)?
-                .as_ref()
-                .to_owned(),
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::DatomicString::try_from(self.0.clone()).map_or_else(
-            |_| datomic::PortionBuilding::bare("wire-invalid"),
-            |value| datomic::Datomic::portion(&value),
-        )
-    }
-}
-impl datomic::Datomic for MetaSocketPath {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        Ok(Self(
-            <datomic::DatomicString as datomic::Datomic>::embody(portion)?
-                .as_ref()
-                .to_owned(),
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::DatomicString::try_from(self.0.clone()).map_or_else(
-            |_| datomic::PortionBuilding::bare("wire-invalid"),
-            |value| datomic::Datomic::portion(&value),
-        )
-    }
-}
-impl datomic::Datomic for SourceManifestPath {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        Ok(Self(
-            <datomic::DatomicString as datomic::Datomic>::embody(portion)?
-                .as_ref()
-                .to_owned(),
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::DatomicString::try_from(self.0.clone()).map_or_else(
-            |_| datomic::PortionBuilding::bare("wire-invalid"),
-            |value| datomic::Datomic::portion(&value),
-        )
-    }
-}
-impl datomic::Datomic for Configuration {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        let Some(parts) =
-            datomic::PortionViewing::structural(portion, protos::StructuralEnclosure::Braced)
-        else {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Shape,
-            ));
-        };
-        if parts.len() != 3usize {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Arity,
-            ));
-        }
-        Ok(Self {
-            ordinary_socket_path: <OrdinarySocketPath as datomic::Datomic>::embody(&parts[0usize])?,
-            meta_socket_path: <MetaSocketPath as datomic::Datomic>::embody(&parts[1usize])?,
-            source_manifest_path: <SourceManifestPath as datomic::Datomic>::embody(&parts[2usize])?,
-        })
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::PortionBuilding::structural(
-            "",
-            protos::StructuralEnclosure::Braced,
-            vec![
-                datomic::Datomic::portion(&self.ordinary_socket_path),
-                datomic::Datomic::portion(&self.meta_socket_path),
-                datomic::Datomic::portion(&self.source_manifest_path),
-            ],
-        )
-    }
-}
-impl datomic::Datomic for MetaSubscriptionRequest {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        let Some(parts) =
-            datomic::PortionViewing::structural(portion, protos::StructuralEnclosure::Braced)
-        else {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Shape,
-            ));
-        };
-        if parts.len() != 1usize {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Arity,
-            ));
-        }
-        Ok(Self {
-            selection: <MetaObservationSelection as datomic::Datomic>::embody(&parts[0usize])?,
-        })
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::PortionBuilding::structural(
-            "",
-            protos::StructuralEnclosure::Braced,
-            vec![datomic::Datomic::portion(&self.selection)],
-        )
-    }
-}
-impl datomic::Datomic for MetaObservationSelection {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        if datomic::PortionViewing::bare_symbol(portion) == Some(stringify!(Configuration)) {
-            return Ok(Self::Configuration);
-        }
-        if datomic::PortionViewing::bare_symbol(portion) == Some(stringify!(Sources)) {
-            return Ok(Self::Sources);
-        }
-        Err(datomic::PortionViewing::fault(
-            portion,
-            datomic::FaultProblem::Shape,
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        match self {
-            Self::Configuration => datomic::PortionBuilding::bare(stringify!(Configuration)),
-            Self::Sources => datomic::PortionBuilding::bare(stringify!(Sources)),
+impl datom_codec::Datomic for ConfigurationRefusal {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "InvalidOrdinarySocketPath" => {
+                datom_codec::Headed::nothing(v)?;
+                std::result::Result::Ok(Self::InvalidOrdinarySocketPath)
+            }
+            "InvalidMetaSocketPath" => {
+                datom_codec::Headed::nothing(v)?;
+                std::result::Result::Ok(Self::InvalidMetaSocketPath)
+            }
+            "InvalidSourceManifestPath" => {
+                datom_codec::Headed::nothing(v)?;
+                std::result::Result::Ok(Self::InvalidSourceManifestPath)
+            }
+            "InvalidRelativePath" => {
+                std::result::Result::Ok(
+                    Self::InvalidRelativePath(datom_codec::Carrying::body(v)?),
+                )
+            }
+            "UnreadableSourceManifest" => {
+                datom_codec::Headed::nothing(v)?;
+                std::result::Result::Ok(Self::UnreadableSourceManifest)
+            }
+            _ => {
+                std::result::Result::Err(
+                    datom_codec::Headed::reject(
+                        &v,
+                        datom_codec::Problem::UnknownVariant(
+                            protos::Word::try_from(v.name).expect("variant name"),
+                        ),
+                    ),
+                )
+            }
         }
     }
 }
-impl datomic::Datomic for SourceName {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        Ok(Self(
-            <datomic::DatomicString as datomic::Datomic>::embody(portion)?
-                .as_ref()
-                .to_owned(),
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::DatomicString::try_from(self.0.clone()).map_or_else(
-            |_| datomic::PortionBuilding::bare("wire-invalid"),
-            |value| datomic::Datomic::portion(&value),
-        )
-    }
-}
-impl datomic::Datomic for RelativePath {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        Ok(Self(
-            <datomic::DatomicString as datomic::Datomic>::embody(portion)?
-                .as_ref()
-                .to_owned(),
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::DatomicString::try_from(self.0.clone()).map_or_else(
-            |_| datomic::PortionBuilding::bare("wire-invalid"),
-            |value| datomic::Datomic::portion(&value),
-        )
-    }
-}
-impl datomic::Datomic for Source {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        let Some(parts) =
-            datomic::PortionViewing::structural(portion, protos::StructuralEnclosure::Braced)
-        else {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Shape,
-            ));
-        };
-        if parts.len() != 2usize {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Arity,
-            ));
-        }
-        Ok(Self {
-            source_name: <SourceName as datomic::Datomic>::embody(&parts[0usize])?,
-            relative_path: <RelativePath as datomic::Datomic>::embody(&parts[1usize])?,
-        })
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::PortionBuilding::structural(
-            "",
-            protos::StructuralEnclosure::Braced,
-            vec![
-                datomic::Datomic::portion(&self.source_name),
-                datomic::Datomic::portion(&self.relative_path),
-            ],
-        )
-    }
-}
-impl datomic::Datomic for Sources {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        Ok(Self(<Vec<Source> as datomic::Datomic>::embody(portion)?))
-    }
-    fn portion(&self) -> protos::Portion {
-        <Vec<Source> as datomic::Datomic>::portion(&self.0)
-    }
-}
-impl datomic::Datomic for SourceIndex {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        let Some(parts) =
-            datomic::PortionViewing::structural(portion, protos::StructuralEnclosure::Braced)
-        else {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Shape,
-            ));
-        };
-        if parts.len() != 1usize {
-            return Err(datomic::PortionViewing::fault(
-                portion,
-                datomic::FaultProblem::Arity,
-            ));
-        }
-        Ok(Self {
-            sources: <Sources as datomic::Datomic>::embody(&parts[0usize])?,
-        })
-    }
-    fn portion(&self) -> protos::Portion {
-        datomic::PortionBuilding::structural(
-            "",
-            protos::StructuralEnclosure::Braced,
-            vec![datomic::Datomic::portion(&self.sources)],
-        )
-    }
-}
-impl datomic::Datomic for MetaObservation {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Configuration)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Configuration(
-                <Configuration as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Sources)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Sources(<SourceIndex as datomic::Datomic>::embody(
-                &headed.body,
-            )?));
-        }
-        Err(datomic::PortionViewing::fault(
-            portion,
-            datomic::FaultProblem::Shape,
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        match self {
-            Self::Configuration(value) => datomic::PortionBuilding::headed(
-                stringify!(Configuration),
-                protos::Separator::Period,
-                <Configuration as datomic::Datomic>::portion(value),
+impl protos::Conceivable<datom_codec::Datom> for ConfigurationRefusal {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                match self {
+                    Self::InvalidOrdinarySocketPath => {
+                        datom_codec::Datom::Word(
+                            datom_codec::DatomWord::try_from(
+                                    protos::Word::try_from("InvalidOrdinarySocketPath")
+                                        .expect("static variant"),
+                                )
+                                .expect("stable variant"),
+                        )
+                    }
+                    Self::InvalidMetaSocketPath => {
+                        datom_codec::Datom::Word(
+                            datom_codec::DatomWord::try_from(
+                                    protos::Word::try_from("InvalidMetaSocketPath")
+                                        .expect("static variant"),
+                                )
+                                .expect("stable variant"),
+                        )
+                    }
+                    Self::InvalidSourceManifestPath => {
+                        datom_codec::Datom::Word(
+                            datom_codec::DatomWord::try_from(
+                                    protos::Word::try_from("InvalidSourceManifestPath")
+                                        .expect("static variant"),
+                                )
+                                .expect("stable variant"),
+                        )
+                    }
+                    Self::InvalidRelativePath(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("InvalidRelativePath")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::UnreadableSourceManifest => {
+                        datom_codec::Datom::Word(
+                            datom_codec::DatomWord::try_from(
+                                    protos::Word::try_from("UnreadableSourceManifest")
+                                        .expect("static variant"),
+                                )
+                                .expect("stable variant"),
+                        )
+                    }
+                },
             ),
-            Self::Sources(value) => datomic::PortionBuilding::headed(
-                stringify!(Sources),
-                protos::Separator::Period,
-                <SourceIndex as datomic::Datomic>::portion(value),
-            ),
-        }
+        )
     }
 }
-impl datomic::Datomic for ConfigurationRefusal {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        if datomic::PortionViewing::bare_symbol(portion)
-            == Some(stringify!(InvalidOrdinarySocketPath))
-        {
-            return Ok(Self::InvalidOrdinarySocketPath);
-        }
-        if datomic::PortionViewing::bare_symbol(portion) == Some(stringify!(InvalidMetaSocketPath))
-        {
-            return Ok(Self::InvalidMetaSocketPath);
-        }
-        if datomic::PortionViewing::bare_symbol(portion)
-            == Some(stringify!(InvalidSourceManifestPath))
-        {
-            return Ok(Self::InvalidSourceManifestPath);
-        }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(InvalidRelativePath)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::InvalidRelativePath(
-                <RelativePath as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        if datomic::PortionViewing::bare_symbol(portion)
-            == Some(stringify!(UnreadableSourceManifest))
-        {
-            return Ok(Self::UnreadableSourceManifest);
-        }
-        Err(datomic::PortionViewing::fault(
-            portion,
-            datomic::FaultProblem::Shape,
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        match self {
-            Self::InvalidOrdinarySocketPath => {
-                datomic::PortionBuilding::bare(stringify!(InvalidOrdinarySocketPath))
-            }
-            Self::InvalidMetaSocketPath => {
-                datomic::PortionBuilding::bare(stringify!(InvalidMetaSocketPath))
-            }
-            Self::InvalidSourceManifestPath => {
-                datomic::PortionBuilding::bare(stringify!(InvalidSourceManifestPath))
-            }
-            Self::InvalidRelativePath(value) => datomic::PortionBuilding::headed(
-                stringify!(InvalidRelativePath),
-                protos::Separator::Period,
-                <RelativePath as datomic::Datomic>::portion(value),
-            ),
-            Self::UnreadableSourceManifest => {
-                datomic::PortionBuilding::bare(stringify!(UnreadableSourceManifest))
-            }
-        }
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
+#[derive(Clone, Debug, PartialEq, Eq)]
 pub enum Request {
     Configure(Configuration),
     Observe(MetaObservationSelection),
     Subscribe(MetaSubscriptionRequest),
     Unsubscribe(MetaSubscriptionRequest),
 }
-impl datomic::Datomic for Request {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Configure)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Configure(
-                <Configuration as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Observe)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Observe(
-                <MetaObservationSelection as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Subscribe)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Subscribe(
-                <MetaSubscriptionRequest as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Unsubscribe)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Unsubscribe(
-                <MetaSubscriptionRequest as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        Err(datomic::PortionViewing::fault(
-            portion,
-            datomic::FaultProblem::Shape,
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        match self {
-            Self::Configure(value) => datomic::PortionBuilding::headed(
-                stringify!(Configure),
-                protos::Separator::Period,
-                <Configuration as datomic::Datomic>::portion(value),
-            ),
-            Self::Observe(value) => datomic::PortionBuilding::headed(
-                stringify!(Observe),
-                protos::Separator::Period,
-                <MetaObservationSelection as datomic::Datomic>::portion(value),
-            ),
-            Self::Subscribe(value) => datomic::PortionBuilding::headed(
-                stringify!(Subscribe),
-                protos::Separator::Period,
-                <MetaSubscriptionRequest as datomic::Datomic>::portion(value),
-            ),
-            Self::Unsubscribe(value) => datomic::PortionBuilding::headed(
-                stringify!(Unsubscribe),
-                protos::Separator::Period,
-                <MetaSubscriptionRequest as datomic::Datomic>::portion(value),
-            ),
+impl datom_codec::Datomic for Request {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "Configure" => {
+                std::result::Result::Ok(Self::Configure(datom_codec::Carrying::body(v)?))
+            }
+            "Observe" => {
+                std::result::Result::Ok(Self::Observe(datom_codec::Carrying::body(v)?))
+            }
+            "Subscribe" => {
+                std::result::Result::Ok(Self::Subscribe(datom_codec::Carrying::body(v)?))
+            }
+            "Unsubscribe" => {
+                std::result::Result::Ok(
+                    Self::Unsubscribe(datom_codec::Carrying::body(v)?),
+                )
+            }
+            _ => {
+                std::result::Result::Err(
+                    datom_codec::Headed::reject(
+                        &v,
+                        datom_codec::Problem::UnknownVariant(
+                            protos::Word::try_from(v.name).expect("variant name"),
+                        ),
+                    ),
+                )
+            }
         }
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Reply {
+impl protos::Conceivable<datom_codec::Datom> for Request {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                match self {
+                    Self::Configure(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Configure")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::Observe(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Observe").expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::Subscribe(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Subscribe")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::Unsubscribe(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Unsubscribe")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                },
+            ),
+        )
+    }
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Response {
     Configured(Configuration),
     Observed(MetaObservation),
     ConfigurationRejected(ConfigurationRefusal),
-}
-impl datomic::Datomic for Reply {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Configured)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Configured(
-                <Configuration as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(Observed)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::Observed(
-                <MetaObservation as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(ConfigurationRejected)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::ConfigurationRejected(
-                <ConfigurationRefusal as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        Err(datomic::PortionViewing::fault(
-            portion,
-            datomic::FaultProblem::Shape,
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        match self {
-            Self::Configured(value) => datomic::PortionBuilding::headed(
-                stringify!(Configured),
-                protos::Separator::Period,
-                <Configuration as datomic::Datomic>::portion(value),
-            ),
-            Self::Observed(value) => datomic::PortionBuilding::headed(
-                stringify!(Observed),
-                protos::Separator::Period,
-                <MetaObservation as datomic::Datomic>::portion(value),
-            ),
-            Self::ConfigurationRejected(value) => datomic::PortionBuilding::headed(
-                stringify!(ConfigurationRejected),
-                protos::Separator::Period,
-                <ConfigurationRefusal as datomic::Datomic>::portion(value),
-            ),
-        }
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Refusal {
-    InvalidRelativePath(RelativePath),
-}
-impl datomic::Datomic for Refusal {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(InvalidRelativePath)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::InvalidRelativePath(
-                <RelativePath as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        Err(datomic::PortionViewing::fault(
-            portion,
-            datomic::FaultProblem::Shape,
-        ))
-    }
-    fn portion(&self) -> protos::Portion {
-        match self {
-            Self::InvalidRelativePath(value) => datomic::PortionBuilding::headed(
-                stringify!(InvalidRelativePath),
-                protos::Separator::Period,
-                <RelativePath as datomic::Datomic>::portion(value),
-            ),
-        }
-    }
-}
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub enum Stream {
     ConfigurationChanged(Configuration),
     SourcesChanged(SourceIndex),
 }
-impl datomic::Datomic for Stream {
-    fn embody(portion: &protos::Portion) -> std::result::Result<Self, datomic::Fault> {
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(ConfigurationChanged)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::ConfigurationChanged(
-                <Configuration as datomic::Datomic>::embody(&headed.body)?,
-            ));
+impl datom_codec::Datomic for Response {
+    fn incorporate(
+        site: datom_codec::Site<'_>,
+    ) -> std::result::Result<Self, datom_codec::Fault> {
+        let v = datom_codec::Sited::variant(site)?;
+        match v.name {
+            "Configured" => {
+                std::result::Result::Ok(
+                    Self::Configured(datom_codec::Carrying::body(v)?),
+                )
+            }
+            "Observed" => {
+                std::result::Result::Ok(Self::Observed(datom_codec::Carrying::body(v)?))
+            }
+            "ConfigurationRejected" => {
+                std::result::Result::Ok(
+                    Self::ConfigurationRejected(datom_codec::Carrying::body(v)?),
+                )
+            }
+            "ConfigurationChanged" => {
+                std::result::Result::Ok(
+                    Self::ConfigurationChanged(datom_codec::Carrying::body(v)?),
+                )
+            }
+            "SourcesChanged" => {
+                std::result::Result::Ok(
+                    Self::SourcesChanged(datom_codec::Carrying::body(v)?),
+                )
+            }
+            _ => {
+                std::result::Result::Err(
+                    datom_codec::Headed::reject(
+                        &v,
+                        datom_codec::Problem::UnknownVariant(
+                            protos::Word::try_from(v.name).expect("variant name"),
+                        ),
+                    ),
+                )
+            }
         }
-        if let Some(headed) = datomic::PortionViewing::headed(portion)
-            && headed.head.as_ref() == stringify!(SourcesChanged)
-            && headed.separator == protos::Separator::Period
-        {
-            return Ok(Self::SourcesChanged(
-                <SourceIndex as datomic::Datomic>::embody(&headed.body)?,
-            ));
-        }
-        Err(datomic::PortionViewing::fault(
-            portion,
-            datomic::FaultProblem::Shape,
-        ))
     }
-    fn portion(&self) -> protos::Portion {
+}
+impl protos::Conceivable<datom_codec::Datom> for Response {
+    type Fault = std::convert::Infallible;
+    fn conceive(
+        &self,
+    ) -> std::result::Result<protos::Situated<datom_codec::Datom>, Self::Fault> {
+        std::result::Result::Ok(
+            protos::Situated(
+                protos::Situation {
+                    extent: protos::Extent(0, 0),
+                    children: vec![],
+                },
+                match self {
+                    Self::Configured(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Configured")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::Observed(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("Observed")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::ConfigurationRejected(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("ConfigurationRejected")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::ConfigurationChanged(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("ConfigurationChanged")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                    Self::SourcesChanged(p0) => {
+                        datom_codec::Datom::Variant(
+                            protos::Symbol::try_from("SourcesChanged")
+                                .expect("static variant"),
+                            std::boxed::Box::new(
+                                protos::Conceivable::conceive(p0)
+                                    .expect("infallible datom ascent")
+                                    .1,
+                            ),
+                        )
+                    }
+                },
+            ),
+        )
+    }
+}
+pub trait WireConversion: Sized {
+    type Wire;
+    fn into_wire(self) -> Self::Wire;
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault>;
+}
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum WireFault {
+    Text,
+}
+pub type OrdinarySocketPathWire = std::string::String;
+pub type MetaSocketPathWire = std::string::String;
+pub type SourceManifestPathWire = std::string::String;
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct ConfigurationWire(
+    pub OrdinarySocketPathWire,
+    pub MetaSocketPathWire,
+    pub SourceManifestPathWire,
+);
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct MetaSubscriptionRequestWire(pub MetaObservationSelectionWire);
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum MetaObservationSelectionWire {
+    Configuration,
+    Sources,
+}
+pub type SourceNameWire = std::string::String;
+pub type RelativePathWire = std::string::String;
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SourceWire(pub SourceNameWire, pub RelativePathWire);
+pub type SourcesWire = std::vec::Vec<SourceWire>;
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub struct SourceIndexWire(pub SourcesWire);
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum MetaObservationWire {
+    Configuration(ConfigurationWire),
+    Sources(SourceIndexWire),
+}
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum ConfigurationRefusalWire {
+    InvalidOrdinarySocketPath,
+    InvalidMetaSocketPath,
+    InvalidSourceManifestPath,
+    InvalidRelativePath(RelativePathWire),
+    UnreadableSourceManifest,
+}
+impl WireConversion for Configuration {
+    type Wire = ConfigurationWire;
+    fn into_wire(self) -> Self::Wire {
+        let Configuration(p0, p1, p2) = self;
+        ConfigurationWire(p0.to_string(), p1.to_string(), p2.to_string())
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        let ConfigurationWire(p0, p1, p2) = wire;
+        Ok(
+            Configuration(
+                protos::Text::try_from(p0).map_err(|_| WireFault::Text)?,
+                protos::Text::try_from(p1).map_err(|_| WireFault::Text)?,
+                protos::Text::try_from(p2).map_err(|_| WireFault::Text)?,
+            ),
+        )
+    }
+}
+impl WireConversion for MetaSubscriptionRequest {
+    type Wire = MetaSubscriptionRequestWire;
+    fn into_wire(self) -> Self::Wire {
+        let MetaSubscriptionRequest(p0) = self;
+        MetaSubscriptionRequestWire(
+            <MetaObservationSelection as WireConversion>::into_wire(p0),
+        )
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        let MetaSubscriptionRequestWire(p0) = wire;
+        Ok(
+            MetaSubscriptionRequest(
+                <MetaObservationSelection as WireConversion>::try_from_wire(p0)?,
+            ),
+        )
+    }
+}
+impl WireConversion for MetaObservationSelection {
+    type Wire = MetaObservationSelectionWire;
+    fn into_wire(self) -> Self::Wire {
         match self {
-            Self::ConfigurationChanged(value) => datomic::PortionBuilding::headed(
-                stringify!(ConfigurationChanged),
-                protos::Separator::Period,
-                <Configuration as datomic::Datomic>::portion(value),
-            ),
-            Self::SourcesChanged(value) => datomic::PortionBuilding::headed(
-                stringify!(SourcesChanged),
-                protos::Separator::Period,
-                <SourceIndex as datomic::Datomic>::portion(value),
-            ),
+            MetaObservationSelection::Configuration => {
+                MetaObservationSelectionWire::Configuration
+            }
+            MetaObservationSelection::Sources => MetaObservationSelectionWire::Sources,
+        }
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            MetaObservationSelectionWire::Configuration => {
+                Ok(MetaObservationSelection::Configuration)
+            }
+            MetaObservationSelectionWire::Sources => {
+                Ok(MetaObservationSelection::Sources)
+            }
         }
     }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub enum FrameBody {
-    Request(Request),
-    Reply(Reply),
-    Refusal(Refusal),
-    Event(Stream),
+impl WireConversion for Source {
+    type Wire = SourceWire;
+    fn into_wire(self) -> Self::Wire {
+        let Source(p0, p1) = self;
+        SourceWire(p0.to_string(), p1.to_string())
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        let SourceWire(p0, p1) = wire;
+        Ok(
+            Source(
+                protos::Text::try_from(p0).map_err(|_| WireFault::Text)?,
+                protos::Text::try_from(p1).map_err(|_| WireFault::Text)?,
+            ),
+        )
+    }
 }
-#[derive(Archive, RkyvSerialize, RkyvDeserialize, Clone, Debug, PartialEq, Eq)]
-pub struct Frame {
-    pub channel_contract_id: ChannelContractId,
-    pub channel_wire_revision: ChannelWireRevision,
-    pub protocol_version: ProtocolVersion,
-    pub body: FrameBody,
+impl WireConversion for SourceIndex {
+    type Wire = SourceIndexWire;
+    fn into_wire(self) -> Self::Wire {
+        let SourceIndex(p0) = self;
+        SourceIndexWire(
+            p0
+                .into_iter()
+                .map(|value| <Source as WireConversion>::into_wire(value))
+                .collect(),
+        )
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        let SourceIndexWire(p0) = wire;
+        Ok(
+            SourceIndex(
+                p0
+                    .into_iter()
+                    .map(|value| <Source as WireConversion>::try_from_wire(value))
+                    .collect::<std::result::Result<std::vec::Vec<_>, WireFault>>()?,
+            ),
+        )
+    }
+}
+impl WireConversion for MetaObservation {
+    type Wire = MetaObservationWire;
+    fn into_wire(self) -> Self::Wire {
+        match self {
+            MetaObservation::Configuration(value) => {
+                MetaObservationWire::Configuration(
+                    <Configuration as WireConversion>::into_wire(value),
+                )
+            }
+            MetaObservation::Sources(value) => {
+                MetaObservationWire::Sources(
+                    <SourceIndex as WireConversion>::into_wire(value),
+                )
+            }
+        }
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            MetaObservationWire::Configuration(value) => {
+                Ok(
+                    MetaObservation::Configuration(
+                        <Configuration as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+            MetaObservationWire::Sources(value) => {
+                Ok(
+                    MetaObservation::Sources(
+                        <SourceIndex as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+        }
+    }
+}
+impl WireConversion for ConfigurationRefusal {
+    type Wire = ConfigurationRefusalWire;
+    fn into_wire(self) -> Self::Wire {
+        match self {
+            ConfigurationRefusal::InvalidOrdinarySocketPath => {
+                ConfigurationRefusalWire::InvalidOrdinarySocketPath
+            }
+            ConfigurationRefusal::InvalidMetaSocketPath => {
+                ConfigurationRefusalWire::InvalidMetaSocketPath
+            }
+            ConfigurationRefusal::InvalidSourceManifestPath => {
+                ConfigurationRefusalWire::InvalidSourceManifestPath
+            }
+            ConfigurationRefusal::InvalidRelativePath(value) => {
+                ConfigurationRefusalWire::InvalidRelativePath(value.to_string())
+            }
+            ConfigurationRefusal::UnreadableSourceManifest => {
+                ConfigurationRefusalWire::UnreadableSourceManifest
+            }
+        }
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            ConfigurationRefusalWire::InvalidOrdinarySocketPath => {
+                Ok(ConfigurationRefusal::InvalidOrdinarySocketPath)
+            }
+            ConfigurationRefusalWire::InvalidMetaSocketPath => {
+                Ok(ConfigurationRefusal::InvalidMetaSocketPath)
+            }
+            ConfigurationRefusalWire::InvalidSourceManifestPath => {
+                Ok(ConfigurationRefusal::InvalidSourceManifestPath)
+            }
+            ConfigurationRefusalWire::InvalidRelativePath(value) => {
+                Ok(
+                    ConfigurationRefusal::InvalidRelativePath(
+                        protos::Text::try_from(value).map_err(|_| WireFault::Text)?,
+                    ),
+                )
+            }
+            ConfigurationRefusalWire::UnreadableSourceManifest => {
+                Ok(ConfigurationRefusal::UnreadableSourceManifest)
+            }
+        }
+    }
+}
+impl WireConversion for Request {
+    type Wire = RequestWire;
+    fn into_wire(self) -> Self::Wire {
+        match self {
+            Request::Configure(value) => {
+                RequestWire::Configure(
+                    <Configuration as WireConversion>::into_wire(value),
+                )
+            }
+            Request::Observe(value) => {
+                RequestWire::Observe(
+                    <MetaObservationSelection as WireConversion>::into_wire(value),
+                )
+            }
+            Request::Subscribe(value) => {
+                RequestWire::Subscribe(
+                    <MetaSubscriptionRequest as WireConversion>::into_wire(value),
+                )
+            }
+            Request::Unsubscribe(value) => {
+                RequestWire::Unsubscribe(
+                    <MetaSubscriptionRequest as WireConversion>::into_wire(value),
+                )
+            }
+        }
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            RequestWire::Configure(value) => {
+                Ok(
+                    Request::Configure(
+                        <Configuration as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+            RequestWire::Observe(value) => {
+                Ok(
+                    Request::Observe(
+                        <MetaObservationSelection as WireConversion>::try_from_wire(
+                            value,
+                        )?,
+                    ),
+                )
+            }
+            RequestWire::Subscribe(value) => {
+                Ok(
+                    Request::Subscribe(
+                        <MetaSubscriptionRequest as WireConversion>::try_from_wire(
+                            value,
+                        )?,
+                    ),
+                )
+            }
+            RequestWire::Unsubscribe(value) => {
+                Ok(
+                    Request::Unsubscribe(
+                        <MetaSubscriptionRequest as WireConversion>::try_from_wire(
+                            value,
+                        )?,
+                    ),
+                )
+            }
+        }
+    }
+}
+impl WireConversion for Response {
+    type Wire = ResponseWire;
+    fn into_wire(self) -> Self::Wire {
+        match self {
+            Response::Configured(value) => {
+                ResponseWire::Configured(
+                    <Configuration as WireConversion>::into_wire(value),
+                )
+            }
+            Response::Observed(value) => {
+                ResponseWire::Observed(
+                    <MetaObservation as WireConversion>::into_wire(value),
+                )
+            }
+            Response::ConfigurationRejected(value) => {
+                ResponseWire::ConfigurationRejected(
+                    <ConfigurationRefusal as WireConversion>::into_wire(value),
+                )
+            }
+            Response::ConfigurationChanged(value) => {
+                ResponseWire::ConfigurationChanged(
+                    <Configuration as WireConversion>::into_wire(value),
+                )
+            }
+            Response::SourcesChanged(value) => {
+                ResponseWire::SourcesChanged(
+                    <SourceIndex as WireConversion>::into_wire(value),
+                )
+            }
+        }
+    }
+    fn try_from_wire(wire: Self::Wire) -> std::result::Result<Self, WireFault> {
+        match wire {
+            ResponseWire::Configured(value) => {
+                Ok(
+                    Response::Configured(
+                        <Configuration as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+            ResponseWire::Observed(value) => {
+                Ok(
+                    Response::Observed(
+                        <MetaObservation as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+            ResponseWire::ConfigurationRejected(value) => {
+                Ok(
+                    Response::ConfigurationRejected(
+                        <ConfigurationRefusal as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+            ResponseWire::ConfigurationChanged(value) => {
+                Ok(
+                    Response::ConfigurationChanged(
+                        <Configuration as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+            ResponseWire::SourcesChanged(value) => {
+                Ok(
+                    Response::SourcesChanged(
+                        <SourceIndex as WireConversion>::try_from_wire(value)?,
+                    ),
+                )
+            }
+        }
+    }
+}
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum RequestWire {
+    Configure(ConfigurationWire),
+    Observe(MetaObservationSelectionWire),
+    Subscribe(MetaSubscriptionRequestWire),
+    Unsubscribe(MetaSubscriptionRequestWire),
+}
+#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq)]
+pub enum ResponseWire {
+    Configured(ConfigurationWire),
+    Observed(MetaObservationWire),
+    ConfigurationRejected(ConfigurationRefusalWire),
+    ConfigurationChanged(ConfigurationWire),
+    SourcesChanged(SourceIndexWire),
 }
