@@ -1,5 +1,51 @@
 # Upgrades
 
+## 2.0.0 — vision shape, signal-ethos-zero's Library, signal 8.0.0 and ethos-zero 16.0.0
+
+A clean breaking deployment with no compatibility path. Nothing serves this
+contract yet; a future Ethos Nexus and its meta CLI are built from this
+revision and signal-ethos-zero 2.0.0 together.
+
+- Pins: signal 8.0.0 `f35460de`, ethos-zero 16.0.0 `c2653dd8`, protos and
+  datom-codec 0.32.2 (`15b41da8`, `4dff16b4`) as before, and
+  signal-ethos-zero 2.0.0, now a dependency (and a build dependency), where
+  it was a dev-dependency. The `datom` feature enables signal-ethos-zero's.
+- `Source` and this file's own `SourceName` and `RelativePath` are gone:
+  the file imports `signal_ethos_zero:[ RelativePath FileLocation ]`, and a
+  source entry is signal-ethos-zero's `FileLocation`, re-exported here with
+  `SourceName` and `RelativePath`. Its datom text is unchanged,
+  `{ name path }`.
+- The wire identity is the digest of signal-ethos-zero's `LIBRARY`
+  followed by `ethos/signal.ethos` (`CONTRACT`, written by `build.rs`), so a
+  change to a shared name is refused at the greeting too. `ETHOS` is still
+  this file alone. A 1.0.0 peer is refused with `ContractMismatch`.
+- The file is held in ethos-zero's own vertical print by `build.rs`.
+- Variant names are unchanged, so every value whose data did not change
+  reads and prints the same datom text: `Configure`, `Configured`,
+  `ConfigurationChanged`, `Observe.Configuration`, `Observe.Sources`,
+  `Observed.Configuration`, every `ConfigurationRejected`. Where a holder
+  was removed the text loses one brace level:
+
+  | Value | 1.0.0 | 2.0.0 |
+  |-|-|-|
+  | `Subscribe`, `Unsubscribe` | `Subscribe.{ Sources }` | `Subscribe.Sources` |
+  | `Observed.Sources`, `SourcesChanged` | `SourcesChanged.{ [ … ] }` | `SourcesChanged.[ … ]` |
+
+- Rust types removed: `MetaSubscriptionRequest` (`Subscribe` and
+  `Unsubscribe` carry `ObservationSelection`), `MetaObservationSelection`
+  (renamed `ObservationSelection`), `MetaObservation` (`Observed_Data`),
+  `ConfigurationRefusal` (`ConfigurationRejected_Data`), `Source`
+  (`FileLocation`); `SourceIndex` is now `Vec<FileLocation>`.
+
+To deploy, in each consumer (none is deployed today):
+
+1. Repin meta-signal-ethos-zero and signal-ethos-zero to their 2.0.0
+   revisions and signal to 8.0.0.
+2. Replace the removed names as listed; datom text written by hand for the
+   two changed shapes drops the inner braces.
+3. Rebuild both ends of every meta connection together; the greeting
+   refuses a mixed pair.
+
 ## 1.0.0 — signal 7.0.0's exchange layer
 
 A clean breaking wire deployment with no compatibility path. Nothing serves

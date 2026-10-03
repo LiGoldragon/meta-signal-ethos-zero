@@ -1,36 +1,29 @@
 ; Ethos-zero meta signal — the privileged configuration wire contract.
 ;
 ; The connection carries signal's exchange layer. A peer greets once,
-; settling this contract by the digest of this file; after that every
-; query opens an exchange the peer names. Configure and Observe are
-; answered with one frame on that exchange, which then ends. Subscribe
-; answers on its exchange with each configuration or source change
-; until the peer abandons the exchange.
+; settling this contract by the digest of signal-ethos-zero's Library and
+; this file; after that every query opens an exchange the peer names.
+; Configure and Observe are answered with one frame on that exchange, which
+; then ends. Subscribe answers on its exchange with each configuration or
+; source change until the peer abandons the exchange.
 Signal
-[]
+[ signal_ethos_zero:[ RelativePath FileLocation ] ]
 [ Configure.EthosNexusConfiguration
-  Observe.MetaObservationSelection
-  Subscribe.MetaSubscriptionRequest
-  Unsubscribe.MetaSubscriptionRequest ]
+  Observe.ObservationSelection
+  Subscribe.ObservationSelection
+  Unsubscribe.ObservationSelection ]
 [ Configured.EthosNexusConfiguration
-  Observed.MetaObservation
-  ConfigurationRejected.ConfigurationRefusal
+  Observed.[ Configuration.EthosNexusConfiguration
+             Sources.SourceIndex ]
+  ConfigurationRejected.[ InvalidOrdinarySocketPath
+                          InvalidMetaSocketPath
+                          InvalidSourceManifestPath
+                          InvalidRelativePath.RelativePath
+                          UnreadableSourceManifest ]
   ConfigurationChanged.EthosNexusConfiguration
   SourcesChanged.SourceIndex ]
-[ OrdinarySocketPath.String
-  MetaSocketPath.String
-  SourceManifestPath.String
-  EthosNexusConfiguration.{ OrdinarySocketPath MetaSocketPath SourceManifestPath }
-  MetaSubscriptionRequest.{ MetaObservationSelection }
-  MetaObservationSelection.[ Configuration Sources ]
-  SourceName.String
-  RelativePath.String
-  Source.{ SourceName RelativePath }
-  SourceIndex.{ Vector<Source> }
-  MetaObservation.[ Configuration.EthosNexusConfiguration
-                    Sources.SourceIndex ]
-  ConfigurationRefusal.[ InvalidOrdinarySocketPath
-                         InvalidMetaSocketPath
-                         InvalidSourceManifestPath
-                         InvalidRelativePath.RelativePath
-                         UnreadableSourceManifest ] ]
+[ EthosNexusConfiguration.{ OrdinarySocketPath.String
+                            MetaSocketPath.String
+                            SourceManifestPath.String }
+  ObservationSelection.[ Configuration Sources ]
+  SourceIndex.Vector<FileLocation> ]

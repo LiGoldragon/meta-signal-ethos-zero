@@ -2,14 +2,14 @@
 //!
 //! Every value is framed, read back off a byte stream and attributed to its
 //! exchange. The digest oracle is computed outside the crate, by the published
-//! FNV-1a algorithm over `ethos/signal.ethos` in Python, not through the path
-//! under test.
+//! FNV-1a algorithm over signal-ethos-zero's `ethos/library.ethos` then this
+//! crate's `ethos/signal.ethos` in Python, not through the path under test.
 
 use std::io::Cursor;
 
 use meta_signal_ethos_zero::{
-    ETHOS, EthosNexusConfiguration, MetaObservation, MetaObservationSelection,
-    MetaSubscriptionRequest, Query, Response, Source, SourceIndex,
+    CONTRACT, ETHOS, EthosNexusConfiguration, FileLocation, ObservationSelection, Observed_Data,
+    Query, Response, SourceIndex,
 };
 use signal::{
     Answer, ByteViewable, ContractDigest, Contracted, Delivery, Dispatch, Ending, ExchangeLedger,
@@ -17,9 +17,9 @@ use signal::{
     HandshakeReceipt, HandshakeRejection, Opening, Restorable, Signal, Signalizable,
 };
 
-/// FNV-1a over exactly the bytes of `ethos/signal.ethos`, as a signed 64-bit
-/// integer.
-const META_DIGEST: ContractDigest = 2_800_736_205_933_196_315;
+/// FNV-1a over exactly the bytes of signal-ethos-zero's `ethos/library.ethos`
+/// followed by those of `ethos/signal.ethos`, as a signed 64-bit integer.
+const META_DIGEST: ContractDigest = -1_340_365_494_544_471_030;
 
 /// Put a value on a byte stream the way a socket carries it, and read it back.
 trait CrossesTheWire: Sized {
@@ -82,7 +82,8 @@ fn the_meta_contract_is_identified_by_the_digest_of_its_own_source() {
             contract_digest: META_DIGEST
         }
     );
-    assert_eq!(<Query as Contracted>::CONTRACT_SOURCE, ETHOS);
+    assert_eq!(<Query as Contracted>::CONTRACT_SOURCE, CONTRACT);
+    assert!(CONTRACT.ends_with(ETHOS));
 }
 
 #[test]
@@ -129,25 +130,19 @@ fn a_source_subscription_and_a_configure_are_told_apart_by_exchange_alone() {
     let configuring = ledger.open().expect("open the Configure exchange");
     let subscribe: Dispatch<Query> = Dispatch::Open(Opening {
         exchange: watching,
-        query: Query::Subscribe(MetaSubscriptionRequest {
-            meta_observation_selection: MetaObservationSelection::Sources,
-        }),
+        query: Query::Subscribe(ObservationSelection::Sources),
     });
     assert_eq!(subscribe.across(), subscribe);
-    let index = SourceIndex {
-        source_vector: vec![Source {
-            source_name: "workspace".to_owned(),
-            relative_path: "ethos/signal.ethos".to_owned(),
-        }],
-    };
+    let index: SourceIndex = vec![FileLocation {
+        source_name: "workspace".to_owned(),
+        relative_path: "ethos/signal.ethos".to_owned(),
+    }];
 
     let written: Vec<Delivery<Response>> = vec![
         Delivery::Greeted(HandshakeReceipt::Greeted(META_DIGEST)),
         Delivery::Answer(Answer {
             exchange: watching,
-            response: Response::Observed(MetaObservation::Sources(SourceIndex {
-                source_vector: Vec::new(),
-            })),
+            response: Response::Observed(Observed_Data::Sources(Vec::new())),
         }),
         Delivery::Answer(Answer {
             exchange: configuring,
@@ -186,9 +181,7 @@ fn a_source_subscription_and_a_configure_are_told_apart_by_exchange_alone() {
     assert_eq!(
         watched,
         vec![
-            &Response::Observed(MetaObservation::Sources(SourceIndex {
-                source_vector: Vec::new()
-            })),
+            &Response::Observed(Observed_Data::Sources(Vec::new())),
             &Response::SourcesChanged(index),
         ]
     );

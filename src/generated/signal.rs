@@ -16,66 +16,45 @@ pub struct EthosNexusConfiguration {
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct MetaSubscriptionRequest {
-    pub meta_observation_selection: MetaObservationSelection,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum MetaObservationSelection {
+pub enum ObservationSelection {
     Configuration,
     Sources,
 }
 #[rustfmt::skip]
-pub type SourceName = String;
-#[rustfmt::skip]
-pub type RelativePath = String;
+pub type SourceIndex = std::vec::Vec<signal_ethos_zero::FileLocation>;
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct Source {
-    pub source_name: SourceName,
-    pub relative_path: RelativePath,
+pub enum Query {
+    Configure(EthosNexusConfiguration),
+    Observe(ObservationSelection),
+    Subscribe(ObservationSelection),
+    Unsubscribe(ObservationSelection),
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub struct SourceIndex {
-    pub source_vector: std::vec::Vec<Source>,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum MetaObservation {
+pub enum Observed_Data {
     Configuration(EthosNexusConfiguration),
     Sources(SourceIndex),
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum ConfigurationRefusal {
+pub enum ConfigurationRejected_Data {
     InvalidOrdinarySocketPath,
     InvalidMetaSocketPath,
     InvalidSourceManifestPath,
-    InvalidRelativePath(RelativePath),
+    InvalidRelativePath(signal_ethos_zero::RelativePath),
     UnreadableSourceManifest,
-}
-#[rustfmt::skip]
-#[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
-#[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
-pub enum Query {
-    Configure(EthosNexusConfiguration),
-    Observe(MetaObservationSelection),
-    Subscribe(MetaSubscriptionRequest),
-    Unsubscribe(MetaSubscriptionRequest),
 }
 #[rustfmt::skip]
 #[derive(rkyv::Archive, rkyv::Serialize, rkyv::Deserialize, Clone, Debug, PartialEq, Eq, Hash)]
 #[cfg_attr(feature = "datom", derive(datom_codec::Datomizable, datom_codec::Composing))]
 pub enum Response {
     Configured(EthosNexusConfiguration),
-    Observed(MetaObservation),
-    ConfigurationRejected(ConfigurationRefusal),
+    Observed(Observed_Data),
+    ConfigurationRejected(ConfigurationRejected_Data),
     ConfigurationChanged(EthosNexusConfiguration),
     SourcesChanged(SourceIndex),
 }

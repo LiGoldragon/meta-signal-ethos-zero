@@ -1,6 +1,6 @@
 [package]
 name = "meta-signal-ethos-zero"
-version = "1.0.0"
+version = "2.0.0"
 edition = "2024"
 rust-version = "1.89"
 license = "MIT OR Apache-2.0"
@@ -15,21 +15,21 @@ path = "src/lib.rs"
 
 [features]
 default = []
-datom = ["dep:datom-codec", "dep:protos"]
+datom = ["dep:datom-codec", "dep:protos", "signal-ethos-zero/datom"]
 
 [dependencies]
 datom-codec = { git = "https://github.com/LiGoldragon/datom-codec", rev = "4dff16b4f7412febc3b71aac8b49680cd20988cb", optional = true }
 protos = { git = "https://github.com/LiGoldragon/protos", rev = "15b41da8f2579e73ead59bc0c2b97529b8ac32d3", optional = true }
 rkyv = { version = "0.8", default-features = false, features = ["std", "bytecheck", "little_endian", "pointer_width_32", "unaligned"] }
-signal = { git = "https://github.com/LiGoldragon/signal", rev = "66e7b153706696c2cfbb2abcf931a5e83aec91af", default-features = false }
+signal = { git = "https://github.com/LiGoldragon/signal", rev = "f35460de930943ea1a8a972453ccf3a092a655b5", default-features = false }
+signal-ethos-zero = { git = "https://github.com/LiGoldragon/signal-ethos-zero", rev = "5a6ae291d87d743367f2a2e0bd419163937b0b9a" }
 
 [build-dependencies]
-ethos-zero = { git = "https://github.com/LiGoldragon/ethos-zero", rev = "3d330276cce48e5cce144fb6ed81b9aa7817f336" }
+signal-ethos-zero = { git = "https://github.com/LiGoldragon/signal-ethos-zero", rev = "5a6ae291d87d743367f2a2e0bd419163937b0b9a" }
+ethos-zero = { git = "https://github.com/LiGoldragon/ethos-zero", rev = "c2653dd82adbdb1f1f2f654405c6620e0d06fd58" }
 
 [lints.rust]
 unsafe_code = "forbid"
 unused = { level = "warn", priority = -1 }
 dead_code = "warn"
 
-[dev-dependencies]
-signal-ethos-zero = { git = "https://github.com/LiGoldragon/signal-ethos-zero", rev = "d2a98d3f941bffb96417461a3e6e6febe5d9c9b1" }
