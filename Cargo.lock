@@ -45,10 +45,61 @@ checksum = "9330f8b2ff13f34540b44e946ef35111825727b38d33286ef986142615121801"
 
 [[package]]
 name = "datom-codec"
-version = "0.21.0"
-source = "git+https://github.com/LiGoldragon/datom-codec?rev=41a3c073d5c5#41a3c073d5c5cdcb3ebb1a5c842e8c068145fdb2"
+version = "0.31.0"
+source = "git+https://github.com/LiGoldragon/datom-codec?rev=09e2a9d52bf7f2f11e51d15cb6c3177f72c6c927#09e2a9d52bf7f2f11e51d15cb6c3177f72c6c927"
 dependencies = [
- "protos",
+ "datom-codec-derive 0.31.0",
+ "protos 0.31.0",
+ "rkyv",
+]
+
+[[package]]
+name = "datom-codec"
+version = "0.32.1"
+source = "git+https://github.com/LiGoldragon/datom-codec?rev=0930abc38e6d04a8dfc5ae5565f7fde8ca5a000a#0930abc38e6d04a8dfc5ae5565f7fde8ca5a000a"
+dependencies = [
+ "datom-codec-derive 0.32.0 (git+https://github.com/LiGoldragon/datom-codec?rev=0930abc38e6d04a8dfc5ae5565f7fde8ca5a000a)",
+ "protos 0.32.1",
+ "rkyv",
+]
+
+[[package]]
+name = "datom-codec"
+version = "0.32.2"
+source = "git+https://github.com/LiGoldragon/datom-codec?rev=4dff16b4f7412febc3b71aac8b49680cd20988cb#4dff16b4f7412febc3b71aac8b49680cd20988cb"
+dependencies = [
+ "datom-codec-derive 0.32.0 (git+https://github.com/LiGoldragon/datom-codec?rev=4dff16b4f7412febc3b71aac8b49680cd20988cb)",
+ "protos 0.32.2",
+]
+
+[[package]]
+name = "datom-codec-derive"
+version = "0.31.0"
+source = "git+https://github.com/LiGoldragon/datom-codec?rev=09e2a9d52bf7f2f11e51d15cb6c3177f72c6c927#09e2a9d52bf7f2f11e51d15cb6c3177f72c6c927"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "datom-codec-derive"
+version = "0.32.0"
+source = "git+https://github.com/LiGoldragon/datom-codec?rev=0930abc38e6d04a8dfc5ae5565f7fde8ca5a000a#0930abc38e6d04a8dfc5ae5565f7fde8ca5a000a"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
+name = "datom-codec-derive"
+version = "0.32.0"
+source = "git+https://github.com/LiGoldragon/datom-codec?rev=4dff16b4f7412febc3b71aac8b49680cd20988cb#4dff16b4f7412febc3b71aac8b49680cd20988cb"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
 ]
 
 [[package]]
@@ -59,14 +110,29 @@ checksum = "877a4ace8713b0bcf2a4e7eec82529c029f1d0619886d18145fea96c3ffe5c0f"
 
 [[package]]
 name = "ethos-zero"
-version = "5.0.0"
-source = "git+https://github.com/LiGoldragon/ethos-zero.git?rev=bcf728bbe4521e663f4773d3c1fd4ebb643df32e#bcf728bbe4521e663f4773d3c1fd4ebb643df32e"
+version = "10.0.0"
+source = "git+https://github.com/LiGoldragon/ethos-zero?rev=4bf73cae8d4f5a2072c76a11cd2f00aa3fe9f8e3#4bf73cae8d4f5a2072c76a11cd2f00aa3fe9f8e3"
 dependencies = [
- "datom-codec",
+ "datom-codec 0.31.0",
  "prettyplease",
  "proc-macro2",
- "protos",
+ "protos 0.31.0",
  "quote",
+ "rkyv",
+ "syn 3.0.5",
+]
+
+[[package]]
+name = "ethos-zero"
+version = "15.0.0"
+source = "git+https://github.com/LiGoldragon/ethos-zero?rev=3d330276cce48e5cce144fb6ed81b9aa7817f336#3d330276cce48e5cce144fb6ed81b9aa7817f336"
+dependencies = [
+ "datom-codec 0.32.1",
+ "prettyplease",
+ "proc-macro2",
+ "protos 0.32.1",
+ "quote",
+ "rkyv",
  "syn 3.0.5",
 ]
 
@@ -123,13 +189,14 @@ dependencies = [
 
 [[package]]
 name = "meta-signal-ethos-zero"
-version = "0.5.0"
+version = "1.0.0"
 dependencies = [
- "datom-codec",
- "ethos-zero",
- "protos",
+ "datom-codec 0.32.2",
+ "ethos-zero 15.0.0",
+ "protos 0.32.2",
  "rkyv",
- "signal-frame",
+ "signal",
+ "signal-ethos-zero",
 ]
 
 [[package]]
@@ -159,12 +226,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9f7c3e4beb33f85d45ae3e3a1792185706c8e16d043238c593331cc7cd313b50"
 
 [[package]]
-name = "paste"
-version = "1.0.15"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "57c0d7b74b563b49d38dae00a0c37d4d6de9b432382b2892f0574ddcae73fd0a"
-
-[[package]]
 name = "pin-project-lite"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -191,8 +252,18 @@ dependencies = [
 
 [[package]]
 name = "protos"
-version = "0.26.0"
-source = "git+https://github.com/LiGoldragon/protos?rev=2d999f173334#2d999f1733347b7e64e24b2f75ba889ad7182bc0"
+version = "0.31.0"
+source = "git+https://github.com/LiGoldragon/protos?rev=1febca7836bf8d5f5973a302fdd50aa9c84c159b#1febca7836bf8d5f5973a302fdd50aa9c84c159b"
+
+[[package]]
+name = "protos"
+version = "0.32.1"
+source = "git+https://github.com/LiGoldragon/protos?rev=109797e9d81799630e981d214df49bbba1ed934f#109797e9d81799630e981d214df49bbba1ed934f"
+
+[[package]]
+name = "protos"
+version = "0.32.2"
+source = "git+https://github.com/LiGoldragon/protos?rev=15b41da8f2579e73ead59bc0c2b97529b8ac32d3#15b41da8f2579e73ead59bc0c2b97529b8ac32d3"
 
 [[package]]
 name = "ptr_meta"
@@ -278,24 +349,23 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "cf54715a573b99ac80df0bc206da022bcd442c974952c7b9720069370852e21f"
 
 [[package]]
-name = "signal-frame"
-version = "0.3.2"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?rev=80f70d929ae6d72707052f097be2264872913983#80f70d929ae6d72707052f097be2264872913983"
+name = "signal"
+version = "7.0.0"
+source = "git+https://github.com/LiGoldragon/signal?rev=66e7b153706696c2cfbb2abcf931a5e83aec91af#66e7b153706696c2cfbb2abcf931a5e83aec91af"
 dependencies = [
- "paste",
+ "ethos-zero 10.0.0",
  "rkyv",
- "signal-frame-macros",
  "thiserror",
 ]
 
 [[package]]
-name = "signal-frame-macros"
-version = "0.1.2"
-source = "git+https://github.com/LiGoldragon/signal-frame.git?rev=80f70d929ae6d72707052f097be2264872913983#80f70d929ae6d72707052f097be2264872913983"
+name = "signal-ethos-zero"
+version = "1.0.0"
+source = "git+https://github.com/LiGoldragon/signal-ethos-zero?rev=d2a98d3f941bffb96417461a3e6e6febe5d9c9b1#d2a98d3f941bffb96417461a3e6e6febe5d9c9b1"
 dependencies = [
- "proc-macro2",
- "quote",
- "syn 2.0.119",
+ "ethos-zero 15.0.0",
+ "rkyv",
+ "signal",
 ]
 
 [[package]]

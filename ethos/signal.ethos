@@ -1,5 +1,36 @@
+; Ethos-zero meta signal — the privileged configuration wire contract.
+;
+; The connection carries signal's exchange layer. A peer greets once,
+; settling this contract by the digest of this file; after that every
+; query opens an exchange the peer names. Configure and Observe are
+; answered with one frame on that exchange, which then ends. Subscribe
+; answers on its exchange with each configuration or source change
+; until the peer abandons the exchange.
 Signal
 []
-[ Configure.Configuration Observe.MetaObservationSelection Subscribe.MetaSubscriptionRequest Unsubscribe.MetaSubscriptionRequest ]
-[ Configured.Configuration Observed.MetaObservation ConfigurationRejected.ConfigurationRefusal ConfigurationChanged.Configuration SourcesChanged.SourceIndex ]
-[ OrdinarySocketPath.Text MetaSocketPath.Text SourceManifestPath.Text Configuration.{ OrdinarySocketPath MetaSocketPath SourceManifestPath } MetaSubscriptionRequest.{ MetaObservationSelection } MetaObservationSelection.[ Configuration Sources ] SourceName.Text RelativePath.Text Source.{ SourceName RelativePath } Sources.Vector<Source> SourceIndex.{ Sources } MetaObservation.[ Configuration.Configuration Sources.SourceIndex ] ConfigurationRefusal.[ InvalidOrdinarySocketPath InvalidMetaSocketPath InvalidSourceManifestPath InvalidRelativePath.RelativePath UnreadableSourceManifest ] ]
+[ Configure.EthosNexusConfiguration
+  Observe.MetaObservationSelection
+  Subscribe.MetaSubscriptionRequest
+  Unsubscribe.MetaSubscriptionRequest ]
+[ Configured.EthosNexusConfiguration
+  Observed.MetaObservation
+  ConfigurationRejected.ConfigurationRefusal
+  ConfigurationChanged.EthosNexusConfiguration
+  SourcesChanged.SourceIndex ]
+[ OrdinarySocketPath.String
+  MetaSocketPath.String
+  SourceManifestPath.String
+  EthosNexusConfiguration.{ OrdinarySocketPath MetaSocketPath SourceManifestPath }
+  MetaSubscriptionRequest.{ MetaObservationSelection }
+  MetaObservationSelection.[ Configuration Sources ]
+  SourceName.String
+  RelativePath.String
+  Source.{ SourceName RelativePath }
+  SourceIndex.{ Vector<Source> }
+  MetaObservation.[ Configuration.EthosNexusConfiguration
+                    Sources.SourceIndex ]
+  ConfigurationRefusal.[ InvalidOrdinarySocketPath
+                         InvalidMetaSocketPath
+                         InvalidSourceManifestPath
+                         InvalidRelativePath.RelativePath
+                         UnreadableSourceManifest ] ]

@@ -1,9 +1,9 @@
-Configure.{/run/ethos-zero.sock /run/ethos-zero-meta.sock /etc/ethos-zero/sources.datom}
+Configure.{ /run/ethos-zero.sock /run/ethos-zero-meta.sock /etc/ethos-zero/sources.datom }
 Observe.Configuration
 Observe.Sources
-Configured.{/run/ethos-zero.sock /run/ethos-zero-meta.sock /etc/ethos-zero/sources.datom}
-Observed.Configuration.{/run/ethos-zero.sock /run/ethos-zero-meta.sock /etc/ethos-zero/sources.datom}
-Observed.Sources.[{workspace ethos/signal.ethos}]
+Configured.{ /run/ethos-zero.sock /run/ethos-zero-meta.sock /etc/ethos-zero/sources.datom }
+Observed.Configuration.{ /run/ethos-zero.sock /run/ethos-zero-meta.sock /etc/ethos-zero/sources.datom }
+Observed.Sources.{ [ { workspace ethos/signal.ethos } ] }
 ConfigurationRejected.InvalidOrdinarySocketPath
 ConfigurationRejected.InvalidMetaSocketPath
 ConfigurationRejected.InvalidSourceManifestPath
