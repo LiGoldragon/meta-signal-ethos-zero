@@ -29,8 +29,8 @@ fn a_changed_authored_type_makes_the_committed_artifact_stale() {
 #[test]
 fn a_changed_rust_type_is_stale_even_with_unchanged_authored_source() {
     let artifact = ARTIFACT.replacen(
-        "pub type SourceManifestPath = String;",
-        "pub type SourceManifestPath = bool;",
+        "pub struct SourceManifestPath(pub String);",
+        "pub struct SourceManifestPath(pub bool);",
         1,
     );
     assert_ne!(artifact, ARTIFACT, "the artifact mutation must take effect");

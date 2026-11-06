@@ -8,8 +8,9 @@
 use std::io::Cursor;
 
 use meta_signal_ethos_zero::{
-    CONTRACT, ETHOS, EthosNexusConfiguration, FileLocation, ObservationSelection, Observed_Data,
-    Query, Response, SourceIndex,
+    CONTRACT, ETHOS, EthosNexusConfiguration, FileLocation, MetaSocketPath, ObservationSelection,
+    Observed_Data, OrdinarySocketPath, Query, RelativePath, Response, SourceIndex,
+    SourceManifestPath, SourceName,
 };
 use signal::{
     Answer, ByteViewable, ContractDigest, Contracted, Delivery, Dispatch, Ending, ExchangeLedger,
@@ -52,9 +53,9 @@ trait Configures {
 impl Configures for EthosNexusConfiguration {
     fn temporary() -> Self {
         Self {
-            ordinary_socket_path: "/tmp/ethos.sock".to_owned(),
-            meta_socket_path: "/tmp/ethos-meta.sock".to_owned(),
-            source_manifest_path: "/tmp/ethos-sources.datom".to_owned(),
+            ordinary_socket_path: OrdinarySocketPath("/tmp/ethos.sock".to_owned()),
+            meta_socket_path: MetaSocketPath("/tmp/ethos-meta.sock".to_owned()),
+            source_manifest_path: SourceManifestPath("/tmp/ethos-sources.datom".to_owned()),
         }
     }
 }
@@ -133,16 +134,16 @@ fn a_source_subscription_and_a_configure_are_told_apart_by_exchange_alone() {
         query: Query::Subscribe(ObservationSelection::Sources),
     });
     assert_eq!(subscribe.across(), subscribe);
-    let index: SourceIndex = vec![FileLocation {
-        source_name: "workspace".to_owned(),
-        relative_path: "ethos/signal.ethos".to_owned(),
-    }];
+    let index = SourceIndex(vec![FileLocation {
+        source_name: SourceName("workspace".to_owned()),
+        relative_path: RelativePath("ethos/signal.ethos".to_owned()),
+    }]);
 
     let written: Vec<Delivery<Response>> = vec![
         Delivery::Greeted(HandshakeReceipt::Greeted(META_DIGEST)),
         Delivery::Answer(Answer {
             exchange: watching,
-            response: Response::Observed(Observed_Data::Sources(Vec::new())),
+            response: Response::Observed(Observed_Data::Sources(SourceIndex(Vec::new()))),
         }),
         Delivery::Answer(Answer {
             exchange: configuring,
@@ -181,7 +182,7 @@ fn a_source_subscription_and_a_configure_are_told_apart_by_exchange_alone() {
     assert_eq!(
         watched,
         vec![
-            &Response::Observed(Observed_Data::Sources(Vec::new())),
+            &Response::Observed(Observed_Data::Sources(SourceIndex(Vec::new()))),
             &Response::SourcesChanged(index),
         ]
     );

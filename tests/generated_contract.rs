@@ -2,16 +2,17 @@
 //! datom text under the `datom` feature, which the CLI enables.
 
 use meta_signal_ethos_zero::{
-    ConfigurationRejected_Data, EthosNexusConfiguration, ObservationSelection, Query, Response,
+    ConfigurationRejected_Data, EthosNexusConfiguration, MetaSocketPath, ObservationSelection,
+    OrdinarySocketPath, Query, RelativePath, Response, SourceManifestPath,
 };
 use signal::{ByteViewable, Restorable, Signal, Signalizable};
 
 #[test]
 fn query_and_response_round_trip_as_portable_frames() {
     let configure = Query::Configure(EthosNexusConfiguration {
-        ordinary_socket_path: "/run/ethos-zero.sock".to_owned(),
-        meta_socket_path: "/run/ethos-zero-meta.sock".to_owned(),
-        source_manifest_path: "/etc/ethos-zero/sources.datom".to_owned(),
+        ordinary_socket_path: OrdinarySocketPath("/run/ethos-zero.sock".to_owned()),
+        meta_socket_path: MetaSocketPath("/run/ethos-zero-meta.sock".to_owned()),
+        source_manifest_path: SourceManifestPath("/etc/ethos-zero/sources.datom".to_owned()),
     });
     for query in [
         configure,
@@ -23,7 +24,7 @@ fn query_and_response_round_trip_as_portable_frames() {
         assert_eq!(received.restore().expect("restore query"), query);
     }
     let response = Response::ConfigurationRejected(
-        ConfigurationRejected_Data::InvalidRelativePath("../outside".to_owned()),
+        ConfigurationRejected_Data::InvalidRelativePath(RelativePath("../outside".to_owned())),
     );
     let frame = response.signalize().expect("signalize");
     assert_eq!(frame.restore().expect("restore response"), response);
