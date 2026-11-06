@@ -20,7 +20,7 @@ use signal::{
 
 /// FNV-1a over exactly the bytes of signal-ethos-zero's `ethos/library.ethos`
 /// followed by those of `ethos/signal.ethos`, as a signed 64-bit integer.
-const META_DIGEST: ContractDigest = -1_340_365_494_544_471_030;
+const META_DIGEST: ContractDigest = ContractDigest(-1_340_365_494_544_471_030);
 
 /// Put a value on a byte stream the way a socket carries it, and read it back.
 trait CrossesTheWire: Sized {

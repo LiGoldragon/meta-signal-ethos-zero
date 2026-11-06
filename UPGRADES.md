@@ -1,5 +1,14 @@
 # Upgrades
 
+## 2.2.1 — signal-ethos-zero 2.2.1, Signal 10.3.0, ethos-zero 19.2.0 generator
+
+The ordinary contract is repinned to signal-ethos-zero 2.2.1 (`23d2`), Signal to
+10.3.0 (`7afb`) and the build and dev generator to ethos-zero 19.2.0 (`5a5d`). The
+committed generated Rust is regenerated: the three `String` newtypes,
+`OrdinarySocketPath`, `MetaSocketPath` and `SourceManifestPath`, additionally
+derive `PartialOrd` and `Ord`. The change adds capabilities and removes none.
+The authored ethos file is unchanged, so the contract digest is unchanged.
+
 ## 2.2.0 — signal-ethos-zero 2.2.0 and ethos-zero 19.1.0 generator
 
 signal-ethos-zero is repinned to 2.2.0 (`a451`) and the build and dev
